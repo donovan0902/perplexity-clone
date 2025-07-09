@@ -1,6 +1,8 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Source {
   title: string;
@@ -27,10 +29,120 @@ export default function Chat() {
     return { text: content, sources: [] };
   };
 
+  // Custom markdown components
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const markdownComponents = {
+    // Style code blocks
+    code: ({ inline, children, ...props }: any) => {
+      if (inline) {
+        return (
+          <code 
+            className="px-1.5 py-0.5 text-sm font-mono bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+      return (
+        <pre className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto my-4">
+          <code 
+            className="text-sm font-mono text-gray-800 dark:text-gray-200"
+            {...props}
+          >
+            {children}
+          </code>
+        </pre>
+      );
+    },
+    // Style links
+    a: ({ href, children, ...props }: any) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 hover:underline"
+        {...props}
+      >
+        {children}
+      </a>
+    ),
+    // Style headings
+    h1: ({ children, ...props }: any) => (
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-6 mb-4" {...props}>
+        {children}
+      </h1>
+    ),
+    h2: ({ children, ...props }: any) => (
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-5 mb-3" {...props}>
+        {children}
+      </h2>
+    ),
+    h3: ({ children, ...props }: any) => (
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-4 mb-2" {...props}>
+        {children}
+      </h3>
+    ),
+    // Style lists
+    ul: ({ children, ...props }: any) => (
+      <ul className="list-disc list-inside space-y-1 my-3 text-gray-700 dark:text-gray-300" {...props}>
+        {children}
+      </ul>
+    ),
+    ol: ({ children, ...props }: any) => (
+      <ol className="list-decimal list-inside space-y-1 my-3 text-gray-700 dark:text-gray-300" {...props}>
+        {children}
+      </ol>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li className="ml-4" {...props}>
+        {children}
+      </li>
+    ),
+    // Style blockquotes
+    blockquote: ({ children, ...props }: any) => (
+      <blockquote 
+        className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic text-gray-600 dark:text-gray-400 my-4"
+        {...props}
+      >
+        {children}
+      </blockquote>
+    ),
+    // Style paragraphs
+    p: ({ children, ...props }: any) => (
+      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4 last:mb-0" {...props}>
+        {children}
+      </p>
+    ),
+    // Style strong/bold text
+    strong: ({ children, ...props }: any) => (
+      <strong className="font-semibold text-gray-900 dark:text-gray-100" {...props}>
+        {children}
+      </strong>
+    ),
+    // Style tables
+    table: ({ children, ...props }: any) => (
+      <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 my-4" {...props}>
+        {children}
+      </table>
+    ),
+    th: ({ children, ...props }: any) => (
+      <th className="border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 px-4 py-2 text-left font-medium" {...props}>
+        {children}
+      </th>
+    ),
+    td: ({ children, ...props }: any) => (
+      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2" {...props}>
+        {children}
+      </td>
+    ),
+  };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
   return (
-    <div className="flex flex-col h-screen w-full max-w-4xl mx-auto">
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-8">
+    <div className="w-full max-w-4xl mx-auto h-screen flex flex-col">
+      {/* Messages Container with bottom padding for sticky input */}
+      <div className="flex-1 overflow-y-auto px-6 py-8 pb-32">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
             <h1 className="text-2xl font-light mb-4">Ask anything</h1>
@@ -54,9 +166,14 @@ export default function Chat() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
-                        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed">
-                          {text}
-                        </h2>
+                        <div className="flex-1 prose prose-gray dark:prose-invert max-w-none">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                          >
+                            {text}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -70,9 +187,12 @@ export default function Chat() {
                         </div>
                         <div className="flex-1">
                           <div className="prose prose-gray dark:prose-invert max-w-none">
-                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={markdownComponents}
+                            >
                               {text}
-                            </p>
+                            </ReactMarkdown>
                           </div>
                           
                           {/* Render sources */}
@@ -114,8 +234,8 @@ export default function Chat() {
         )}
       </div>
 
-      {/* Input Form */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      {/* Fixed Input Form at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm z-10">
         <form
           onSubmit={handleSubmit}
           className="p-4"
@@ -127,7 +247,7 @@ export default function Chat() {
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Ask a follow-up..."
-                className="w-full px-4 py-3 pr-12 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                className="w-full px-4 py-3 pr-12 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 shadow-lg"
               />
               <button
                 type="submit"
