@@ -2,8 +2,30 @@
 
 import { useChat } from '@ai-sdk/react';
 
+interface Source {
+  title: string;
+  url: string;
+}
+
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat();
+
+  // Function to extract sources and content from a message
+  const parseMessageContent = (content: string): { text: string; sources: Source[] } => {
+    const sourcesMatch = content.match(/<!--SOURCES:(.*?)-->/);
+    
+    if (sourcesMatch) {
+      try {
+        const sources = JSON.parse(sourcesMatch[1]);
+        const text = content.replace(/<!--SOURCES:.*?-->/g, '').trim();
+        return { text, sources };
+      } catch (e) {
+        console.error('Error parsing sources:', e);
+      }
+    }
+    
+    return { text: content, sources: [] };
+  };
 
   return (
     <div className="flex flex-col h-[600px] w-full max-w-2xl mx-auto border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -14,24 +36,56 @@ export default function Chat() {
             Start a conversation by typing a message below
           </div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
+          messages.map((message) => {
+            const { text, sources } = message.role === 'assistant' 
+              ? parseMessageContent(message.content)
+              : { text: message.content, sources: [] };
+              
+            return (
+              <div key={message.id} className="space-y-2">
+                <div
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                    }`}
+                  >
+                    <div className="text-sm whitespace-pre-wrap">
+                      {text}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Render sources as buttons */}
+                {sources.length > 0 && (
+                  <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[80%] flex flex-wrap gap-2">
+                      {sources.map((source, index) => (
+                        <a
+                          key={index}
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-full transition-colors"
+                          title={source.title}
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          {source.title.length > 30 ? source.title.substring(0, 30) + '...' : source.title}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

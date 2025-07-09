@@ -11,7 +11,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
 // Define the tools for the agent to use
 const agentTools = [new TavilySearch({ maxResults: 3 })];
-const agentModel = new ChatOpenAI({ temperature: 0 });
+const agentModel = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
 
 // Initialize memory to persist state between graph runs
 const agentCheckpointer = new MemorySaver();
@@ -31,5 +31,5 @@ export async function invokeAgent(
     { configurable: { thread_id: threadId } },
   );
   
-  return response.messages[response.messages.length - 1];
+  return response;
 }
