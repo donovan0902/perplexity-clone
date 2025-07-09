@@ -28,17 +28,3 @@ npm run dev
 ```
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Features
-
-- Simple chat interface with message history
-- Streaming responses from OpenAI
-- Dark mode support
-- Responsive design
-
-## Customization
-
-You can modify:
-- The AI model in `app/api/chat/route.ts` (default: gpt-3.5-turbo)
-- The UI styling in `app/components/Chat.tsx`
-- Add system prompts or additional parameters to the AI model 
