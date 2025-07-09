@@ -9,6 +9,12 @@
 OPENAI_API_KEY=your-openai-api-key-here
 ```
 
+3. Add your Tavily search API key:
+
+```
+TAVILY_API_KEY=your-tavily-api-key-here
+```
+
 ## Running the Application
 
 1. Make sure dependencies are installed:
